@@ -147,3 +147,10 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# 로컬 전용 MCP 설정 (다른 프로젝트의 절대경로가 포함돼 있어 기기마다 다름)
+.mcp.json

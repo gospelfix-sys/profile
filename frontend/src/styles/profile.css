@@ -1,0 +1,1121 @@
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Pretendard (로컬 번들, 한글 최적화) */
+@font-face {
+  font-family: "Pretendard";
+  src: url("/fonts/Pretendard-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Pretendard";
+  src: url("/fonts/Pretendard-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Pretendard";
+  src: url("/fonts/Pretendard-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Pretendard";
+  src: url("/fonts/Pretendard-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Pretendard";
+  src: url("/fonts/Pretendard-ExtraBold.woff2") format("woff2");
+  font-weight: 800;
+  font-display: swap;
+}
+
+/* :root가 아니라 .gf-profile-page로 스코프함 — shadcn의 globals.css도 --radius/--ring을
+   :root에 선언하므로, 여기서도 :root를 쓰면 이름이 겹쳐 전역으로 서로 덮어쓴다(신규 shadcn
+   요소인 QR Dialog의 radius/ring이 틀어짐). 포털(BusinessHoursBadge/QrShareSheet)도
+   document.body가 아니라 .gf-profile-page 노드를 타겟으로 해야 이 변수들이 상속된다. */
+.gf-profile-page {
+  /* 색상 - 라이트 테마 */
+  --color-bg: #f4f5f7;
+  --color-surface: #ffffff;
+  --color-chip-bg: #eef0f3;
+  --color-border: rgba(20, 21, 26, 0.08);
+  --color-border-strong: rgba(20, 21, 26, 0.14);
+  --color-text: #14151a;
+  --color-text-secondary: rgba(20, 21, 26, 0.55);
+  --color-text-muted: rgba(20, 21, 26, 0.35);
+  --color-positive: #1f9d55;
+
+  /* 히어로 배경 악센트 - 진한 테라코타 그라데이션 (mode: gradient) */
+  --color-hero-glow-1: #f0a878;
+  --color-hero-glow-2: #d9713f;
+  --color-hero-glow-3: #c98a6a;
+
+  /* 타이포그래피 */
+  --text-xs: 10px;
+  --text-sm: 12px;
+  --text-md: 13px;
+  --text-base: 15px;
+  --text-lg: 16px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 28px;
+
+  --leading-tight: 1.25;
+  --leading-snug: 1.4;
+  --leading-base: 1.5;
+  --leading-loose: 1.7;
+
+  /* 스페이싱 */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* 반경 — 기준값(--radius)에서 파생. 개별 값을 덮어쓰지 않고 기준값만 조정한다 (docs/05-radius.md 참고) */
+  --radius: 16px;
+  --radius-sm: calc(var(--radius) - 10px);
+  --radius-md: calc(var(--radius) - 6px);
+  --radius-lg: calc(var(--radius) - 2px);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-full: 9999px;
+
+  /* shadcn/ui 네이밍 별칭 — 실제 쓰는 것만 정의. 전체 매핑(--background/--foreground/--card 등)은
+     지금 당장 참조하는 코드가 없어 docs/09-shadcn-tokens.md에 문서로만 남기고 CSS에는 추가하지 않는다 */
+  --ring: var(--color-text);
+}
+
+/* 키보드 포커스 표시 — 기존에 없던 접근성 보강, 마우스 클릭 시에는 나타나지 않는다 */
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Base */
+body {
+  font-family:
+    "Pretendard",
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Apple SD Gothic Neo",
+    sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: var(--leading-base);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.container {
+  max-width: 574px;
+  margin: var(--space-3) auto 0;
+  padding: 0 0 40px;
+  min-height: 100vh;
+  background: var(--color-bg);
+  position: relative;
+  z-index: 1;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(20, 21, 26, 0.12);
+}
+
+/* 프로필 히어로 — 컴포넌트 (HeroModule, mode: classic | gradient) */
+.profile-hero {
+  position: relative;
+}
+
+/* mode="gradient" 전용 — 진한 테라코타 배경 악센트, 이동+회전+확대 모션 적용.
+   .hero-glow-zone은 흰 정보 카드(profile-hero-card)를 포함하지 않는, 실제로 그라데이션이 보이는
+   영역(상단바~액션 버튼)만 감싸는 wrapper — 이 박스 크기를 기준으로만 그라데이션이 움직이도록
+   범위를 한정한다. */
+.hero-glow-zone {
+  position: relative;
+  padding: var(--space-5) var(--space-5) 0;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+/* 비디오는 position:absolute라 기본 페인트 순서상 static 콘텐츠보다 위에 그려지므로,
+   실제 콘텐츠를 명시적으로 positioned 시켜 비디오 레이어 위로 끌어올린다. */
+.hero-glow-zone > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* .hero-glow-zone > *와 동일한 명시도(0,1,0)라 소스 순서로는 뒤집히므로,
+   자식 결합자를 추가해 명시도를 (0,2,0)으로 올려 확실히 덮어쓴다. */
+.hero-glow-zone > .hero-bg-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qr-sheet-backdrop,
+  .qr-sheet {
+    transition: none;
+  }
+
+  .hero-hours-chevron,
+  .hero-hours-panel {
+    transition: none;
+  }
+}
+
+/* mode="classic" 전용 — 전체 프로필 사진 */
+.profile-hero-image {
+  width: 100%;
+  aspect-ratio: 1122 / 1402;
+  overflow: hidden;
+  background: var(--color-chip-bg);
+}
+
+.profile-hero-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+/* mode="gradient" 전용 — 상단바 (뒤로가기 / 공유 / 홈페이지) */
+.hero-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) 0 var(--space-6);
+}
+
+.hero-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.hero-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--color-text);
+  border: none;
+  box-shadow: 0 4px 14px rgba(120, 72, 45, 0.12);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.hero-icon-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* mode="gradient" 전용 — 원형 아바타 */
+.hero-avatar-wrap {
+  position: relative;
+  width: 112px;
+  height: 112px;
+  margin: 0 auto var(--space-4);
+}
+
+.hero-avatar {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background: var(--color-chip-bg);
+  border: 3px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 14px 28px -10px rgba(120, 72, 45, 0.4);
+}
+
+.hero-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+.hero-subtitle {
+  margin-top: 2px;
+  margin-bottom: var(--space-6);
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--color-surface);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+/* mode="gradient" 전용 — 액션 버튼 행 (이메일 / 전화 / 공유 / 홈페이지) */
+.hero-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-4);
+  padding-bottom: var(--space-8);
+}
+
+.hero-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-text);
+  text-decoration: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.hero-action-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.65);
+  box-shadow: 0 6px 16px rgba(120, 72, 45, 0.1);
+}
+
+.hero-action-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.hero-action-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-surface);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+/* mode="gradient" 전용 — 운영시간 배지(아코디언) */
+.hero-hours {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: var(--space-8);
+}
+
+.hero-hours-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 44px;
+  padding: 0 var(--space-6);
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.65);
+  border: none;
+  box-shadow: 0 6px 16px rgba(120, 72, 45, 0.1);
+  color: var(--color-text);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.hero-hours-trigger svg {
+  width: 16px;
+  height: 16px;
+}
+
+.hero-hours-status {
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.hero-hours-status.is-open {
+  color: var(--color-positive);
+}
+
+.hero-hours-status.is-closed {
+  color: var(--color-text-muted);
+}
+
+.hero-hours-today {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  color: var(--color-text-secondary);
+}
+
+.hero-hours-chevron {
+  transition: transform 0.2s ease;
+}
+
+.hero-hours-trigger[aria-expanded="true"] .hero-hours-chevron {
+  transform: rotate(180deg);
+}
+
+/* top/left는 hours.js가 트리거 버튼 위치를 기준으로 인라인으로 계산해 넣는다 (qr-sheet와 달리
+   body 레벨에서 좌표 기반으로 떠 있는 드롭다운이라 .hero-glow-zone의 overflow:hidden에 잘리지 않는다) */
+.hero-hours-panel {
+  list-style: none;
+  position: absolute;
+  transform: translateX(-50%);
+  z-index: 50;
+  width: 220px;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: 0 6px 16px rgba(120, 72, 45, 0.1);
+  transition: max-height 0.25s ease, opacity 0.2s ease;
+}
+
+.hero-hours-panel.is-open {
+  max-height: 260px;
+  opacity: 1;
+}
+
+.hero-hours-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: 6px 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.hero-hours-row.is-today .hero-hours-day,
+.hero-hours-row.is-today .hero-hours-time {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.hero-hours-time.is-closed {
+  color: var(--color-text-muted);
+}
+
+/* 공용 — 정보 카드 (badge, role, tags) */
+.profile-hero-card {
+  position: relative;
+  z-index: 1;
+  background: var(--color-surface);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  box-shadow: 0 -12px 24px rgba(20, 21, 26, 0.06);
+  padding: var(--space-6) var(--space-6) var(--space-5);
+  animation: fadeIn 0.4s ease;
+}
+
+.profile-hero[data-mode="classic"] .profile-hero-card {
+  margin-top: -28px;
+}
+
+.profile-hero[data-mode="gradient"] .profile-hero-card {
+  margin-top: -16px;
+}
+
+.profile-hero-top {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.profile-hero[data-mode="classic"] .profile-hero-top {
+  justify-content: space-between;
+}
+
+.profile-hero[data-mode="gradient"] .profile-hero-top {
+  justify-content: flex-start;
+}
+
+.profile-hero-name {
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: -0.02em;
+}
+
+.profile-hero[data-mode="classic"] .profile-hero-name {
+  font-size: var(--text-3xl);
+}
+
+.profile-hero[data-mode="gradient"] .profile-hero-name {
+  margin-bottom: 2px;
+  text-align: center;
+  font-size: var(--text-2xl);
+  color: var(--color-surface);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.profile-hero-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.profile-hero-badge-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.profile-hero[data-mode="classic"] .profile-hero-badge-text {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.profile-hero[data-mode="gradient"] .profile-hero-badge-text {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.profile-hero-company {
+  max-width: 100%;
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-hero-company-en {
+  max-width: 100%;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-hero-role {
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-loose);
+  margin-bottom: var(--space-4);
+}
+
+.profile-hero-tags {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.hero-tag {
+  padding: 10px 14px;
+  background: var(--color-chip-bg);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  border-radius: var(--radius-md);
+}
+
+/* Section */
+.section {
+  margin-bottom: 0;
+  padding-top: 8px;
+  animation: fadeIn 0.4s ease;
+}
+
+.section:nth-child(3) {
+  animation-delay: 0.05s;
+}
+.section:nth-child(4) {
+  animation-delay: 0.1s;
+}
+.section:nth-child(5) {
+  animation-delay: 0.15s;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 12px;
+}
+
+.section-header .section-title {
+  padding: 0;
+}
+
+.section-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  padding: 20px 24px 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.section-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  background: var(--color-chip-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  transition: all 0.2s ease;
+}
+
+.section-link:hover {
+  background: var(--color-border-strong);
+  color: var(--color-text);
+}
+
+.section-link:active {
+  transform: scale(0.96);
+}
+
+.section-link svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Card */
+.card {
+  background: var(--color-surface);
+  margin: 0 20px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+/* List Item */
+.list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 18px 20px;
+  text-decoration: none;
+  color: inherit;
+  border-bottom: 1px solid var(--color-border);
+  min-height: 44px;
+  transition: background 0.2s ease;
+}
+
+.list-item:last-child {
+  border-bottom: none;
+}
+
+.list-item:active {
+  background: var(--color-chip-bg);
+}
+
+.item-label {
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.item-value-group {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-1);
+  flex: 1;
+  min-width: 0;
+}
+
+.item-value {
+  min-width: 0;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-value.preparing {
+  color: var(--color-text-muted);
+}
+
+.item-arrow {
+  color: var(--color-text-muted);
+  display: flex;
+  flex-shrink: 0;
+}
+
+.item-arrow svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* 캐치프레이즈 */
+.catchphrase {
+  margin: var(--space-8) var(--space-6) 0;
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: var(--leading-snug);
+  letter-spacing: -0.01em;
+}
+
+/* Ministry & Portfolio Section with Swiper */
+.ministry-section,
+.portfolio-section {
+  overflow: hidden;
+}
+
+.ministry-swiper,
+.portfolio-swiper {
+  padding: 0 20px 40px 20px !important;
+  overflow: visible;
+}
+
+.ministry-swiper .swiper-slide,
+.portfolio-swiper .swiper-slide {
+  width: 240px;
+  height: auto;
+}
+
+.ministry-swiper .swiper-pagination,
+.portfolio-swiper .swiper-pagination {
+  bottom: 8px;
+}
+
+.ministry-swiper .swiper-pagination-bullet,
+.portfolio-swiper .swiper-pagination-bullet {
+  background: var(--color-border-strong);
+  opacity: 1;
+}
+
+.ministry-swiper .swiper-pagination-bullet-active,
+.portfolio-swiper .swiper-pagination-bullet-active {
+  background: var(--color-text);
+}
+
+/* Ministry Card */
+.ministry-card-link {
+  display: block;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  height: 100%;
+  box-shadow: 0 2px 8px rgba(20, 21, 26, 0.04);
+}
+
+.ministry-card-link:active {
+  transform: scale(0.98);
+}
+
+.ministry-card-image {
+  position: relative;
+  background: var(--color-chip-bg);
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.ministry-card-image svg {
+  width: 60px;
+  height: 60px;
+  color: var(--color-text-muted);
+}
+
+/* 이미지 타입 카드 */
+.ministry-card-image.has-image {
+  height: auto;
+  aspect-ratio: 1514 / 2142;
+  background: var(--color-chip-bg);
+}
+
+.ministry-card-image.has-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.ministry-card-link:hover .ministry-card-image.has-image img {
+  transform: scale(1.05);
+}
+
+/* 운영 종료 카드(unavailable:true) — 흐릿하게 처리해 더 이상 접속 가능한 링크가 아님을 미리 알린다 */
+.ministry-card-link--unavailable {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.ministry-card-link--unavailable:hover .ministry-card-image.has-image img {
+  transform: none;
+}
+
+.ministry-card-content {
+  padding: 16px;
+}
+
+.ministry-card-subtitle {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: 4px;
+}
+
+.ministry-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.ministry-card-title .highlight {
+  color: var(--color-text);
+}
+
+.ministry-card-date {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.ministry-card-info {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: 12px;
+}
+
+.ministry-card-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.tag-primary {
+  background: var(--color-text);
+  color: var(--color-surface);
+}
+
+.tag-outline {
+  background: transparent;
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text-secondary);
+}
+
+@media (hover: hover) {
+  .ministry-card-link:hover {
+    border-color: var(--color-border-strong);
+    transform: translateY(-2px);
+  }
+}
+
+/* Floating Actions — 하단 고정 wrapper (공유 버튼 + QR 버튼), 배치(position:fixed)는
+   wrapper가 담당하고 내부 버튼은 flex 아이템으로만 동작한다 */
+.floating-actions {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  gap: var(--space-2);
+  width: calc(min(100vw, 390px) - 48px);
+}
+
+/* Contact Button */
+.contact-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 24px;
+  background: var(--color-text);
+  color: var(--color-surface);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow:
+    0 8px 32px rgba(20, 21, 26, 0.2),
+    0 2px 8px rgba(20, 21, 26, 0.1);
+  transition: all 0.2s ease;
+}
+
+.contact-button:active {
+  transform: scale(0.98);
+}
+
+.contact-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* QR Trigger Button — 아이콘 전용, secondary 톤 */
+.qr-trigger-button {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: var(--space-3);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius);
+  cursor: pointer;
+  box-shadow:
+    0 8px 32px rgba(20, 21, 26, 0.2),
+    0 2px 8px rgba(20, 21, 26, 0.1);
+  transition: all 0.2s ease;
+}
+
+.qr-trigger-button:active {
+  transform: scale(0.98);
+}
+
+.qr-trigger-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Footer — 플로팅 버튼 높이(약 56px) + 여백(28px) 확보 */
+.footer {
+  text-align: center;
+  padding: 32px 24px 24px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--color-text);
+  color: var(--color-surface);
+  padding: 14px 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0;
+  transition: all 0.3s ease;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* QR Bottom Sheet — qr.js가 런타임에 생성하는 DOM. .toast(z-index:1000)보다 위에 뜬다 */
+.qr-sheet-root {
+  position: fixed;
+  inset: 0;
+  z-index: 1001;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.qr-sheet-root.is-open {
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.qr-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 21, 26, 0.45);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.qr-sheet-root.is-open .qr-sheet-backdrop {
+  opacity: 1;
+}
+
+.qr-sheet {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translate(-50%, 100%);
+  width: 100%;
+  max-width: min(100vw, 480px);
+  background: var(--color-surface);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  padding: var(--space-4) var(--space-6) var(--space-6);
+  box-shadow: 0 -8px 32px rgba(20, 21, 26, 0.2);
+  transition: transform 0.3s ease;
+}
+
+.qr-sheet-root.is-open .qr-sheet {
+  transform: translate(-50%, 0);
+}
+
+.qr-sheet-handle {
+  width: 40px;
+  height: 4px;
+  margin: 0 auto var(--space-4);
+  background: var(--color-border-strong);
+  border-radius: var(--radius-full);
+}
+
+.qr-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.qr-sheet-title {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.qr-sheet-close {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: -10px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+}
+
+.qr-sheet-close svg {
+  width: 20px;
+  height: 20px;
+}
+
+.qr-sheet-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  text-align: center;
+  padding-bottom: var(--space-6);
+}
+
+.qr-sheet-canvas-wrap {
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.qr-sheet-canvas-wrap canvas {
+  display: block;
+}
+
+.qr-sheet-desc {
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+}
+
+.qr-sheet-url {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  word-break: break-all;
+}
+
+.qr-sheet-save-btn {
+  width: 100%;
+  min-height: 44px;
+  padding: 16px 24px;
+  background: var(--color-text);
+  color: var(--color-surface);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.qr-sheet-save-btn:active {
+  transform: scale(0.98);
+}
+
+/* Responsive - Tablet (가운데 정렬) */
+@media (min-width: 768px) {
+  .container {
+    margin: 40px auto;
+    border-radius: 24px;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+  }
+}
+
+/* Hover states for desktop */
+@media (hover: hover) {
+  .list-item:hover {
+    background: var(--color-chip-bg);
+  }
+
+  .contact-button:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 12px 40px rgba(20, 21, 26, 0.25),
+      0 4px 12px rgba(20, 21, 26, 0.12);
+  }
+
+  .qr-trigger-button:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 12px 40px rgba(20, 21, 26, 0.25),
+      0 4px 12px rgba(20, 21, 26, 0.12);
+  }
+}
