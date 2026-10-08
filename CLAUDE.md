@@ -6,10 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `service.supabase.v2` 스타터킷(`docs/PRD.md`, `docs/ROADMAP.md` 참고 — Supabase 인증 + 사용자/관리자 분리 모노레포) 위에, 소윤호(GospelFix 대표)의 **공개 프로필/포트폴리오 사이트**를 얹은 저장소다. 두 레이어가 공존한다는 점이 가장 먼저 알아야 할 사실이다.
 
-- **공개 레이어**: `frontend`의 루트(`/`)는 인증과 무관한 정적 프로필 페이지(`src/app/page.tsx`) — 히어로, 연락처, 포트폴리오/사역 카드 캐러셀, QR 공유 등. 현재는 `src/lib/profile-data`의 픽스처 데이터를 쓰는 **Phase 1(정적 사이트 1:1 포팅)** 상태이고, Phase 2에서 Supabase 조회로 교체될 예정이다. 실제 콘텐츠 테이블(`site_profile`, `business_hours`, `portfolio_cards`, `ministry_cards`)은 `docs/supabase-schema.sql`에 이미 정의돼 있고, `admin`에는 이를 관리하는 `(protected)/cards`, `(protected)/hours`, `(protected)/profile` 페이지와 대응 API 라우트가 이미 구현돼 있다.
+- **공개 레이어**: `frontend`의 루트(`/`)는 인증과 무관한 정적 프로필 페이지(`src/app/page.tsx`) — 히어로, 연락처, 포트폴리오/사역 카드 캐러셀, QR 공유 등. 현재는 `src/lib/profile-data`의 픽스처 데이터를 쓰는 **Phase 1(정적 사이트 1:1 포팅)** 상태이고, Phase 2에서 Supabase 조회로 교체될 예정이다. 실제 콘텐츠 테이블(`site_profile`, `business_hours`, `portfolio_cards`, `ministry_cards`)은 `supabase/schema.sql`에 이미 정의돼 있고, `admin`에는 이를 관리하는 `(protected)/cards`, `(protected)/hours`, `(protected)/profile` 페이지와 대응 API 라우트가 이미 구현돼 있다.
 - **스타터킷 레이어**: `frontend`의 `(auth)/login`, `(auth)/register`, `(dashboard)/dashboard`와 `admin`의 사용자/역할 관리 기능. `docs/ROADMAP.md`에 Phase별 완료 상태가 추적된다 — frontend의 로그인/회원가입 라우트는 아직 기능이 비어있는 스캐폴드이고, `(dashboard)` 영역도 "아무 기능도 없는 미사용 스캐폴드"(코드 주석 원문)다.
 
-작업 전에 어떤 레이어를 건드리는지 먼저 구분할 것. 공개 프로필 쪽 콘텐츠/카드 작업이라면 `docs/supabase-schema.sql` + admin의 `cards`/`hours`/`profile` 라우트를 기준으로, 인증/대시보드 스타터킷 작업이라면 `docs/ROADMAP.md`의 Phase 2/3 미완료 항목을 기준으로 삼는다.
+작업 전에 어떤 레이어를 건드리는지 먼저 구분할 것. 공개 프로필 쪽 콘텐츠/카드 작업이라면 `supabase/schema.sql` + admin의 `cards`/`hours`/`profile` 라우트를 기준으로, 인증/대시보드 스타터킷 작업이라면 `docs/ROADMAP.md`의 Phase 2/3 미완료 항목을 기준으로 삼는다.
 
 ## 프로젝트 구조
 
@@ -17,10 +17,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 profile/
 ├── frontend/    # 사용자 앱 (포트 3000)
 ├── admin/       # 관리자 앱 (포트 3001)
-└── docs/        # PRD.md, ROADMAP.md, supabase-schema.sql, seed-supabase.mjs
+├── docs/        # PRD.md, ROADMAP.md, TECH-STACK-PRIORITY.md, 디자인 아이덴티티 문서(01~09)
+└── supabase/    # schema.sql, seed.mjs — Supabase 관련 작업/SQL은 전부 이 폴더에 모은다
 ```
 
-Supabase 스키마는 **대시보드에서 직접 관리**한다(로컬 CLI 마이그레이션 미사용). 새 테이블/컬럼이 필요하면 `docs/supabase-schema.sql`에 추가하고 Supabase 대시보드 SQL Editor에서 직접 실행한다.
+Supabase 스키마는 **대시보드에서 직접 관리**한다(로컬 CLI 마이그레이션 미사용). 새 테이블/컬럼이 필요하면 `supabase/schema.sql`에 추가하고 Supabase 대시보드 SQL Editor에서 직접 실행한다.
 
 ---
 
@@ -149,6 +150,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 
 ## Supabase 스키마
 
-전체 DDL은 `docs/supabase-schema.sql`(공개 콘텐츠: `site_profile`/`business_hours`/`portfolio_cards`/`ministry_cards`, RLS는 공개 읽기 + `is_admin()` 기반 관리자 쓰기)에 있다. 인증 기반 `profiles` 테이블과 `handle_new_user()` 트리거는 `docs/PRD.md` 4절에 정의돼 있다. 스키마를 바꿀 때는 Supabase 대시보드 SQL Editor에서 직접 실행하고, 변경 내용을 `docs/supabase-schema.sql`에도 반영한다.
+전체 DDL은 `supabase/schema.sql`(공개 콘텐츠: `site_profile`/`business_hours`/`portfolio_cards`/`ministry_cards`, RLS는 공개 읽기 + `is_admin()` 기반 관리자 쓰기)에 있다. 인증 기반 `profiles` 테이블과 `handle_new_user()` 트리거는 `docs/PRD.md` 4절에 정의돼 있다. 스키마를 바꿀 때는 Supabase 대시보드 SQL Editor에서 직접 실행하고, 변경 내용을 `supabase/schema.sql`에도 반영한다.
 
-시드 스크립트: `docs/seed-supabase.mjs`.
+시드 스크립트: `supabase/seed.mjs`.
+
+**컨벤션**: Supabase 관련 작업(스키마, 시드, 마이그레이션 노트 등)은 앞으로 전부 `supabase/`에 둔다 — `docs/`에는 두지 않는다.

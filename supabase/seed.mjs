@@ -1,9 +1,9 @@
 // GospelFix 프로필 사이트 — 1회성 초기 데이터 주입 스크립트
-// supabase-schema.sql을 Supabase 대시보드에서 먼저 실행한 뒤, 로컬에서 한 번만 실행하세요.
+// schema.sql을 Supabase 대시보드에서 먼저 실행한 뒤, 로컬에서 한 번만 실행하세요.
 // 어느 앱의 node_modules에도 의존하지 않도록 PostgREST REST API를 fetch로 직접 호출합니다(Node 18+).
 //
 // 실행 방법:
-//   SUPABASE_URL=https://xxx.supabase.co SUPABASE_SERVICE_ROLE_KEY=eyJ... node docs/seed-supabase.mjs
+//   SUPABASE_URL=https://xxx.supabase.co SUPABASE_SERVICE_ROLE_KEY=eyJ... node supabase/seed.mjs
 //
 // service role key는 RLS를 모두 우회하므로 반드시 로컬에서만 쓰고 커밋/배포 환경에 넣지 마세요.
 // 카드 두 테이블은 INSERT만 수행합니다 — 이미 데이터가 있는 상태에서 다시 실행하면 중복 생성되니
